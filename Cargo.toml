@@ -2,6 +2,16 @@
 name = "libtest-mimic-collect"
 version = "0.1.0"
 edition = "2021"
+authors = ["Marat Dulin <mdevils@gmail.com>"]
+categories = [
+    "development-tools::testing",
+]
+documentation = "https://docs.rs/libtest-mimic-collect/"
+homepage = "https://github.com/mdevils/libtest-mimic-collect"
+repository = "https://github.com/mdevils/libtest-mimic-collect"
+keywords = ["libtest", "libtest-mimic", "testing"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
 
 [dependencies]
 libtest-mimic = "0.8.1"
