@@ -3,6 +3,7 @@ name = "libtest-mimic-collect"
 version = "0.1.0"
 edition = "2021"
 authors = ["Marat Dulin <mdevils@gmail.com>"]
+description = "Global test collector for libtest-mimic"
 categories = [
     "development-tools::testing",
 ]
