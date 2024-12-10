@@ -3,6 +3,8 @@ use std::sync::Mutex;
 
 static TESTS: Mutex<Vec<Trial>> = Mutex::new(Vec::new());
 
+/// A global collection of tests.
+/// Tests can be added to the collection from different modules and then run.
 pub struct TestCollection {}
 
 impl TestCollection {
@@ -23,6 +25,7 @@ impl TestCollection {
     }
 }
 
+/// Converts typical test function results to the Result type used by libtest_mimic.
 pub trait ConvertResult<T> {
     fn convert_result(result: T) -> Result<(), Failed>;
 }
