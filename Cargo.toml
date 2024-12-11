@@ -17,7 +17,7 @@ readme = "README.md"
 [dependencies]
 ctor = "0.2.9"
 libtest-mimic = "0.8.1"
-libtest-mimic-collect-macro = "0.2.0"
+libtest-mimic-collect-macro = "0.3.0"
 
 [lib]
 test = false

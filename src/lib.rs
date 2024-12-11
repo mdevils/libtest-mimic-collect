@@ -8,6 +8,8 @@ static TESTS: Mutex<Vec<Trial>> = Mutex::new(Vec::new());
 pub use libtest_mimic_collect_macro::test;
 /// This macro is used by #[test] to add tests to the test collection.
 pub use ctor::ctor;
+// Re-export libtest_mimic to use in macros.
+pub use libtest_mimic;
 
 /// A global collection of tests.
 /// Tests can be added to the collection from different modules and then run.
