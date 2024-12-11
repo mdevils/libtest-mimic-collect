@@ -1,6 +1,6 @@
 [package]
 name = "libtest-mimic-collect"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 authors = ["Marat Dulin <mdevils@gmail.com>"]
 description = "Global test collector for libtest-mimic"
