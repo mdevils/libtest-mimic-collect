@@ -1,11 +1,7 @@
 # libtest-mimic-collect
 
-Provides a global storage for tests to run them using `libtest-mimic` crate.
-
-Can be used to collect tests from different modules and run them all at once.
-
-You can use [ctor](https://crates.io/crates/ctor) to collect tests explicitly
-or use `libtest-mimic-collect-macro` to collect tests automatically.
+Automatically collects tests marked using `#[test]` attribute. Tests can then be run using
+`libtest_mimic_collect::TestCollection::run()`.
 
 ## Installation
 
