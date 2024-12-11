@@ -98,6 +98,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
 
 [[package]]
+name = "ctor"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32a2785755761f3ddc1492979ce1e48d2c00d09311c39e4466429188f3dd6501"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "escape8259"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -129,9 +139,22 @@ dependencies = [
 
 [[package]]
 name = "libtest-mimic-collect"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
+ "ctor",
  "libtest-mimic",
+ "libtest-mimic-collect-macro",
+]
+
+[[package]]
+name = "libtest-mimic-collect-macro"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8b7e2ab9ec36d37d01ee5ca15f4378211e501506fc5c1197cae2819b0cafbea"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

@@ -1,6 +1,6 @@
 [package]
 name = "libtest-mimic-collect"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Marat Dulin <mdevils@gmail.com>"]
 description = "Global test collector for libtest-mimic"
@@ -15,5 +15,16 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 
 [dependencies]
+ctor = "0.2.9"
 libtest-mimic = "0.8.1"
+libtest-mimic-collect-macro = "0.2.0"
+
+[lib]
+test = false
+doctest = false
+
+[[test]]
+name = "test"
+harness = false
+path = "tests/test.rs"
 

@@ -9,11 +9,27 @@ or use `libtest-mimic-collect-macro` to collect tests automatically.
 
 ## Installation
 
-* Add `libtest-mimic-collect` to the dependencies.
-* Also add `libtest-mimic` if you want to import `Failed` type.
-* Also add `libtest-mimic-collect-macro` if you want to use the macro.
+* Add `libtest-mimic-collect` to the dev-dependencies.
 
-## Example using `libtest-mimic-collect-macro`
+## Example
+
+Specify your test target in `Cargo.toml`:
+
+```toml
+[[test]]
+name = "test"
+harness = false
+path = "lib/test.rs"
+```
+
+You might also disable the default tests:
+
+```toml
+[lib]
+test = false
+```
+
+Create a test module `lib/test.rs`:
 
 ```rust
 mod my_mod1;
@@ -21,64 +37,25 @@ mod my_mod2;
 // ...
 
 #[macro_use]
-extern crate libtest_mimic_collect_macro;
+extern crate libtest_mimic_collect;
 
 #[test]
 fn test_success() {
-    ()
+  ()
 }
 
 #[test]
 fn test_failure() -> Result<(), String> {
-    Err("Something went wrong".into())
+  Err("Something went wrong".into())
 }
 
 #[test]
 fn test_assert() {
-    assert_eq!(1, 2);
+  assert_eq!(1, 2);
 }
 
 pub fn main() {
-    libtest_mimic_collect::TestCollection::run();
-}
-```
-
-## Example using `ctor`
-
-```rust
-mod my_mod1;
-mod my_mod2;
-// ...
-
-use libtest_mimic::Failed;
-
-fn test_success() -> Result<(), Failed> {
-    Ok(())
-}
-
-fn test_failure() -> Result<(), Failed> {
-    Err("Something went wrong".into())
-}
-
-fn test_assert() -> Result<(), Failed> {
-    if 1 != 2 {
-        Err("1 != 2".into())
-    } else {
-        Ok(())
-    }
-}
-
-#[ctor::ctor]
-fn register_tests() {
-    use libtest_mimic_collect::TestCollection;
-
-    TestCollection::add_test("test_success", test_success);
-    TestCollection::add_test("test_failure", test_failure);
-    TestCollection::add_test("test_assert", test_assert);
-}
-
-pub fn main() {
-    libtest_mimic_collect::TestCollection::run();
+  libtest_mimic_collect::TestCollection::run();
 }
 ```
 
