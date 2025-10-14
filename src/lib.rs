@@ -31,6 +31,11 @@ impl TestCollection {
         let args = Arguments::from_args();
         libtest_mimic::run(&args, TestCollection::collect_tests()).exit();
     }
+
+    /// Runs all the collected tests with the provided arguments.
+    pub fn run_with_args(args: Arguments) {
+        libtest_mimic::run(&args, TestCollection::collect_tests()).exit();
+    }
 }
 
 /// Converts typical test function results to the Result type used by libtest_mimic.
