@@ -163,7 +163,7 @@ dependencies = [
 
 [[package]]
 name = "libtest-mimic-collect"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "ctor",
  "libtest-mimic",
