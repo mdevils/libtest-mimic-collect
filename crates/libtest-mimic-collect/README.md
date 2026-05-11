@@ -51,12 +51,12 @@ fn test_assert() {
 
 #[test]
 fn ignorable_test() -> Result<Completion, Failed> {
-  Ok(Completion::Ignored { reason: Some("Please don't run this test") })
+  Ok(Completion::Ignored { reason: Some("Please don't run this test".into()) })
 }
 
 #[test]
 fn explicit_failing_test() -> Result<Completion, Failed> {
-  Ok(Completion::Failed { reason: Some("This test fails explicitly") })
+  Err(Failed::from("This test fails explicitly"))
 }
 
 #[test]
@@ -74,9 +74,9 @@ pub fn main() {
 Licensed under either of
 
 * Apache License, Version 2.0
-  ([LICENSE-APACHE](../libtest-mimic-collect/LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+  ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
 * MIT license
-  ([LICENSE-MIT](../libtest-mimic-collect/LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
+  ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 
