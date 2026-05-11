@@ -5,13 +5,13 @@ use std::sync::Mutex;
 
 static TESTS: Mutex<Vec<Trial>> = Mutex::new(Vec::new());
 
-/// This macro automatically adds tests marked with #[test] to the test collection.
-/// Tests then can be run with libtest_mimic_collect::TestCollection::run().
-pub use libtest_mimic_collect_macro::test;
 /// This macro is used by #[test] to add tests to the test collection.
 pub use ctor::ctor;
 /// Re-export libtest_mimic to be used in macros.
 pub use libtest_mimic;
+/// This macro automatically adds tests marked with #[test] to the test collection.
+/// Tests then can be run with libtest_mimic_collect::TestCollection::run().
+pub use libtest_mimic_collect_macro::test;
 
 /// A global collection of tests.
 /// Tests can be added to the collection from different modules and then run.

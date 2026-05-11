@@ -2,16 +2,15 @@ use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{
-    AngleBracketedGenericArguments, GenericArgument, ItemFn, LitStr, PathArguments, ReturnType, Type, TypePath, TypeTuple, parse_macro_input, spanned::Spanned
+    parse_macro_input, spanned::Spanned, AngleBracketedGenericArguments, GenericArgument, ItemFn,
+    LitStr, PathArguments, ReturnType, Type, TypePath, TypeTuple,
 };
 
 /// This macro automatically adds tests marked with #[test] to the test collection.
 /// Tests then can be run with libtest_mimic_collect::TestCollection::run().
 #[proc_macro_attribute]
 pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
-    let ItemFn {
-        sig, block, ..
-    } = parse_macro_input!(input as ItemFn);
+    let ItemFn { sig, block, .. } = parse_macro_input!(input as ItemFn);
 
     let ident = &sig.ident;
     let test_name = ident.to_string();
@@ -23,7 +22,6 @@ pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
     let ret_type_completion = quote! { Result<::libtest_mimic_collect::libtest_mimic::Completion, ::libtest_mimic_collect::libtest_mimic::Failed> };
 
     let trial = match &sig.output {
-        // Case 1: Return type is () - call ident and return Ok(())
         ReturnType::Default => {
             quote! {
                 ::libtest_mimic_collect::libtest_mimic::Trial::test(#test_name_str, || -> #ret_type_unit {
@@ -32,14 +30,17 @@ pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
                 })
             }
         }
-        ReturnType::Type(_, ty) => match ty.as_ref() {
-            Type::Path(TypePath { path, qself: None }) => {
-                let segment = path
-                    .segments
+        ReturnType::Type(_, ty) => {
+            let result_segment = if let Type::Path(TypePath { path, qself: None }) = ty.as_ref() {
+                path.segments
                     .last()
-                    .expect("Should have at least one segment");
-                if segment.ident == "Result" {
-                    // Case 2 & 3: Return type is Result<T, E>
+                    .filter(|segment| segment.ident == "Result")
+            } else {
+                None
+            };
+
+            match result_segment {
+                Some(segment) => {
                     let is_unit_result = match &segment.arguments {
                         PathArguments::None => false,
                         PathArguments::AngleBracketed(AngleBracketedGenericArguments {
@@ -71,7 +72,8 @@ pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
                             })
                         }
                     }
-                } else {
+                }
+                None => {
                     quote! {
                         ::libtest_mimic_collect::libtest_mimic::Trial::test(#test_name_str, || -> #ret_type_unit {
                             ::libtest_mimic_collect::TestCollection::convert_result(#ident())
@@ -79,14 +81,7 @@ pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
                     }
                 }
             }
-            _ => {
-                quote! {
-                    ::libtest_mimic_collect::libtest_mimic::Trial::test(#test_name_str, || -> #ret_type_unit {
-                        ::libtest_mimic_collect::TestCollection::convert_result(#ident())
-                    });
-                }
-            }
-        },
+        }
     };
 
     (quote! {
