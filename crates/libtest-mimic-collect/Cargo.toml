@@ -1,6 +1,6 @@
 [package]
 name = "libtest-mimic-collect"
-version = "0.3.3"
+version = "0.4.0"
 edition = "2021"
 authors = ["Marat Dulin <mdevils@gmail.com>"]
 description = "Global test collector for libtest-mimic"
@@ -17,7 +17,7 @@ readme = "README.md"
 [dependencies]
 ctor = "0.2.9"
 libtest-mimic = "0.8.2"
-libtest-mimic-collect-macro = { path = "../libtest-mimic-collect-macro", version = "0.3.0" }
+libtest-mimic-collect-macro = { path = "../libtest-mimic-collect-macro", version = "0.4.0" }
 
 [lib]
 test = false

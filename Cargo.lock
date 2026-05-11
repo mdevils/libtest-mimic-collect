@@ -140,7 +140,7 @@ dependencies = [
 
 [[package]]
 name = "libtest-mimic-collect"
-version = "0.3.3"
+version = "0.4.0"
 dependencies = [
  "ctor",
  "libtest-mimic",
@@ -149,7 +149,7 @@ dependencies = [
 
 [[package]]
 name = "libtest-mimic-collect-macro"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "proc-macro2",
  "quote",
