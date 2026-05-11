@@ -4,3 +4,8 @@ members = [
     "crates/libtest-mimic-collect",
     "crates/libtest-mimic-collect-macro",
 ]
+
+[workspace.metadata.release]
+shared-version = true
+tag-name = "v{{version}}"
+pre-release-commit-message = "chore: release v{{version}}"
