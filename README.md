@@ -32,8 +32,7 @@ mod my_mod1;
 mod my_mod2;
 // ...
 
-#[macro_use]
-extern crate libtest_mimic_collect;
+use libtest_mimic_collect::{test, libtest_mimic::{Completion, Failed}};
 
 #[test]
 fn test_success() {
@@ -48,6 +47,21 @@ fn test_failure() -> Result<(), String> {
 #[test]
 fn test_assert() {
   assert_eq!(1, 2);
+}
+
+#[test]
+fn ignorable_test() -> Result<Completion, Failed> {
+  Ok(Completion::Ignored { reason: Some("Please don't run this test") })
+}
+
+#[test]
+fn explicit_failing_test() -> Result<Completion, Failed> {
+  Ok(Completion::Failed { reason: Some("This test fails explicitly") })
+}
+
+#[test]
+fn explicit_success_test() -> Result<Completion, Failed> {
+  Ok(Completion::Completed)
 }
 
 pub fn main() {
