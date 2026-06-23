@@ -111,16 +111,123 @@ fn fail7() -> CustomReturn {
     CustomReturn(false)
 }
 
+#[test]
+#[ignore]
+fn ignore_attr() {
+    panic!("ignored tests must not be run");
+}
+
+#[test]
+#[ignore = "this reason is discarded"]
+fn ignore_attr_reason() {
+    panic!("ignored tests must not be run");
+}
+
+// all() is always true.
+#[test]
+#[cfg_attr(all(), ignore)]
+fn ignore_cfg_attr_true() {
+    panic!("ignored tests must not be run");
+}
+
+// any() is always false.
+#[test]
+#[cfg_attr(any(), ignore)]
+fn run_cfg_attr_false() {}
+
+// all() + all() + ignore ==> ignore
+#[test]
+#[cfg_attr(all(), cfg_attr(all(), ignore))]
+fn ignore_nested_cfg_attr() {
+    panic!("ignored tests must not be run");
+}
+
+// Always-true name-value cfg_attr().
+#[test]
+#[cfg_attr(
+    any(
+        target_pointer_width = "16",
+        target_pointer_width = "32",
+        target_pointer_width = "64"
+    ),
+    ignore
+)]
+fn ignore_cfg_attr_name_value() {
+    panic!("ignored tests must not be run");
+}
+
+// all() | any() ==> ignore
+#[test]
+#[cfg_attr(any(), ignore)]
+#[cfg_attr(all(), ignore)]
+fn ignore_two_cfg_attrs() {
+    panic!("ignored tests must not be run");
+}
+
+// RFC 2539 allows for multiple attributes in #[cfg_attr()].
+#[test]
+#[cfg_attr(all(), must_use, ignore)]
+fn ignore_cfg_attr_multi() {
+    panic!("ignored tests must not be run");
+}
+
+#[test]
+#[cfg_attr(all(), must_use, cfg_attr(all(), ignore))]
+fn ignore_cfg_attr_multi_nested() {
+    panic!("ignored tests must not be run");
+}
+
 pub fn main() {
     let tests = TestCollection::collect_tests();
 
-    const EXPECTED_NAMES: [&str; 14] = [
-        "fail1", "fail2", "fail3", "fail4", "fail5", "fail6", "fail7", "ignore1", "ignore2",
-        "ignore3", "success1", "success2", "success3", "success4",
+    const EXPECTED_NAMES: [&str; 23] = [
+        "fail1",
+        "fail2",
+        "fail3",
+        "fail4",
+        "fail5",
+        "fail6",
+        "fail7",
+        "ignore1",
+        "ignore2",
+        "ignore3",
+        "ignore_attr",
+        "ignore_attr_reason",
+        "ignore_cfg_attr_multi",
+        "ignore_cfg_attr_multi_nested",
+        "ignore_cfg_attr_name_value",
+        "ignore_cfg_attr_true",
+        "ignore_nested_cfg_attr",
+        "ignore_two_cfg_attrs",
+        "run_cfg_attr_false",
+        "success1",
+        "success2",
+        "success3",
+        "success4",
     ];
     let expected: HashSet<_> = EXPECTED_NAMES.into_iter().collect();
     let actual: HashSet<_> = tests.iter().map(libtest_mimic::Trial::name).collect();
     assert_eq!(actual, expected);
+
+    // Verify the compile-time attributes were mapped to the runtime ignored flag correctly.
+    let ignored: HashSet<_> = tests
+        .iter()
+        .filter(|trial| trial.has_ignored_flag())
+        .map(libtest_mimic::Trial::name)
+        .collect();
+    let expected_ignored: HashSet<_> = [
+        "ignore_attr",
+        "ignore_attr_reason",
+        "ignore_cfg_attr_multi",
+        "ignore_cfg_attr_multi_nested",
+        "ignore_cfg_attr_name_value",
+        "ignore_cfg_attr_true",
+        "ignore_nested_cfg_attr",
+        "ignore_two_cfg_attrs",
+    ]
+    .into_iter()
+    .collect();
+    assert_eq!(ignored, expected_ignored);
 
     let args = libtest_mimic::Arguments {
         test: true,
@@ -133,7 +240,7 @@ pub fn main() {
     // pass when required
     let result = libtest_mimic::run(&args, tests);
     assert_eq!(result.num_failed, 7);
-    assert_eq!(result.num_ignored, 3);
-    assert_eq!(result.num_passed, 4);
+    assert_eq!(result.num_ignored, 11);
+    assert_eq!(result.num_passed, 5);
     assert_eq!(result.num_measured, 0);
 }

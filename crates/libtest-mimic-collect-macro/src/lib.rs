@@ -1,16 +1,21 @@
+use std::borrow::Borrow;
+
 use proc_macro::TokenStream;
-use proc_macro2::{Ident, Span};
+use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{
-    parse_macro_input, spanned::Spanned, AngleBracketedGenericArguments, GenericArgument, ItemFn,
-    LitStr, PathArguments, ReturnType, Type, TypePath, TypeTuple,
+    parse_macro_input, punctuated::Punctuated, spanned::Spanned, AngleBracketedGenericArguments,
+    Attribute, GenericArgument, ItemFn, LitStr, Meta, MetaNameValue, PathArguments, ReturnType,
+    Token, Type, TypePath, TypeTuple,
 };
 
 /// This macro automatically adds tests marked with #[test] to the test collection.
 /// Tests then can be run with libtest_mimic_collect::TestCollection::run().
 #[proc_macro_attribute]
 pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
-    let ItemFn { sig, block, .. } = parse_macro_input!(input as ItemFn);
+    let ItemFn {
+        sig, block, attrs, ..
+    } = parse_macro_input!(input as ItemFn);
 
     let ident = &sig.ident;
     let test_name = ident.to_string();
@@ -84,6 +89,14 @@ pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
         }
     };
 
+    // If there was an #[ignore] (or #[cfg_attr(...)] which evaluates to #[ignore], then map it to
+    // a Trial::with_ignored_flag() that expresses the same constraint.
+    let trial = match ignore_attrs(&attrs) {
+        Ok(Some(is_ignored)) => quote! { #trial.with_ignored_flag(#is_ignored) },
+        Ok(None) => trial,
+        Err(err) => return err.to_compile_error().into(),
+    };
+
     (quote! {
         #sig #block
 
@@ -93,4 +106,80 @@ pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
         }
     })
     .into()
+}
+
+/// Builds the expression passed to `Trial::with_ignored_flag` from the attributes on a test
+/// function, or `None` if the test has no `#[ignore]`-triggering attributes.
+///
+/// The predicate of a `#[cfg_attr(..., ignore)]` cannot be evaluated inside a proc-macro, so it is
+/// mapped to a runtime `cfg!(any(all(...), ...))` check instead. `#[ignore]` is unconditional but
+/// is essentially treated as `#[cfg_attr(all(), ignore)]` to make things simpler.
+fn ignore_attrs(attrs: &[Attribute]) -> syn::Result<Option<TokenStream2>> {
+    let chains = attrs
+        .iter()
+        .map(|attr| ignore_attr_chains(&attr.meta))
+        // collate errors
+        .collect::<syn::Result<Vec<_>>>()?
+        .into_iter()
+        // drop Ok(None)s
+        .flatten()
+        .collect::<Vec<_>>();
+
+    // TODO: Can we unify this with the same chain-collect-filter logic in ignore_attr_chains?
+
+    if chains.is_empty() {
+        // No chains found, emit nothing.
+        return Ok(None);
+    }
+    Ok(Some(quote! { ::core::cfg!(any( #(#chains),* )) }))
+}
+
+/// Recursively walks an attribute's [`Meta`], returning the equivalent set of [`cfg!`][]
+/// predicates that are necessary for this `Meta` to apply an `#[ignore]` attribute.
+///
+/// [`cfg!`]: core::cfg
+fn ignore_attr_chains(meta: impl Borrow<Meta>) -> syn::Result<Option<TokenStream2>> {
+    match meta.borrow() {
+        // #[ignore] or #[ignore = "reason"] (libtest-mimic cannot handle reason strings).
+        Meta::Path(path) | Meta::NameValue(MetaNameValue { path, .. })
+            if path.is_ident("ignore") =>
+        {
+            // cfg!(all()) is always true -- equivalent to #[cfg_attr()].
+            Ok(Some(quote! { all() }))
+        }
+        // #[cfg_attr(..., ..., ignore, ...)]
+        Meta::List(list) if list.path.is_ident("cfg_attr") => {
+            // Split out the cfg_attr predicate and attributes.
+            let (predicate, attrs) = {
+                let mut cfg_attr = list
+                    .parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?
+                    .into_iter();
+                (
+                    // cfg_attr requires a predicate (though this error is never hit because the
+                    // compiler rejects such programs before proc-macros get executed).
+                    cfg_attr.next().ok_or_else(|| {
+                        syn::Error::new_spanned(list, "cfg_attr is missing a predicate")
+                    })?,
+                    // Rest of the meta iterator.
+                    cfg_attr,
+                )
+            };
+
+            let chains = attrs
+                .map(ignore_attr_chains)
+                // collate errors
+                .collect::<syn::Result<Vec<_>>>()?
+                .into_iter()
+                // drop Ok(None)s
+                .flatten()
+                .collect::<Vec<_>>();
+
+            if chains.is_empty() {
+                // No chains found, prune this branch.
+                return Ok(None);
+            }
+            Ok(Some(quote! { all( #predicate, any( #(#chains),* ) ) }))
+        }
+        _ => Ok(None),
+    }
 }
