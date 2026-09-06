@@ -3,6 +3,15 @@
 use libtest_mimic::{Arguments, Failed, Trial};
 use std::sync::Mutex;
 
+#[macro_export]
+macro_rules! __make_test_name {
+    ($name:literal) => {{
+        const __CRATE_NAME: &str = env!("CARGO_CRATE_NAME");
+        const __NAME: &str = concat!(module_path!(), "::", $name);
+        __NAME.split_at(__CRATE_NAME.len() + 2).1
+    }};
+}
+
 static TESTS: Mutex<Vec<Trial>> = Mutex::new(Vec::new());
 
 /// This macro is used by #[test] to add tests to the test collection.
@@ -66,5 +75,14 @@ impl ConvertResult<Result<(), &str>> for TestCollection {
 impl ConvertResult<Result<(), String>> for TestCollection {
     fn convert_result(result: Result<(), String>) -> Result<(), Failed> {
         result.map_err(|e| e.into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn make_test_name() {
+        const TEST_NAME: &str = crate::__make_test_name!("test_name");
+        assert_eq!(TEST_NAME, "tests::test_name");
     }
 }
