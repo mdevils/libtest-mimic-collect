@@ -24,14 +24,17 @@ pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
     let trial = match &sig.output {
         ReturnType::Default => {
             quote! {
-                ::libtest_mimic_collect::libtest_mimic::Trial::test(#test_name_str, || -> #ret_type_unit {
+                ::libtest_mimic_collect::libtest_mimic::Trial::test(libtest_mimic_collect::__make_test_name!(#test_name_str), || -> #ret_type_unit {
                     #ident();
                     Ok(())
                 })
             }
         }
         ReturnType::Type(_, ty) => {
-            let result_segment = if let Type::Path(TypePath { path, qself: None }) = ty.as_ref() {
+            let result_segment = if let Type::Path(TypePath {
+                path, qself: None, ..
+            }) = ty.as_ref()
+            {
                 path.segments
                     .last()
                     .filter(|segment| segment.ident == "Result")
@@ -61,13 +64,13 @@ pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
 
                     if is_unit_result {
                         quote! {
-                            ::libtest_mimic_collect::libtest_mimic::Trial::test(#test_name_str, || -> #ret_type_unit {
+                            ::libtest_mimic_collect::libtest_mimic::Trial::test(libtest_mimic_collect::__make_test_name!(#test_name_str), || -> #ret_type_unit {
                                 Ok(#ident()?.into())
                             })
                         }
                     } else {
                         quote! {
-                            ::libtest_mimic_collect::libtest_mimic::Trial::ignorable_test(#test_name_str, || -> #ret_type_completion {
+                            ::libtest_mimic_collect::libtest_mimic::Trial::ignorable_test(libtest_mimic_collect::__make_test_name!(#test_name_str), || -> #ret_type_completion {
                                 Ok(#ident()?.into())
                             })
                         }
@@ -75,7 +78,7 @@ pub fn test(_args: TokenStream, input: TokenStream) -> TokenStream {
                 }
                 None => {
                     quote! {
-                        ::libtest_mimic_collect::libtest_mimic::Trial::test(#test_name_str, || -> #ret_type_unit {
+                        ::libtest_mimic_collect::libtest_mimic::Trial::test(libtest_mimic_collect::__make_test_name!(#test_name_str), || -> #ret_type_unit {
                             ::libtest_mimic_collect::TestCollection::convert_result(#ident())
                         })
                     }

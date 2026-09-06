@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Marat Dulin <mdevils@gmail.com>"]
 description = "Global test collector for libtest-mimic"
 categories = [
-    "development-tools::testing",
+  "development-tools::testing",
 ]
 documentation = "https://docs.rs/libtest-mimic-collect/"
 homepage = "https://github.com/mdevils/libtest-mimic-collect"
@@ -13,18 +13,18 @@ repository = "https://github.com/mdevils/libtest-mimic-collect"
 keywords = ["libtest", "libtest-mimic", "testing"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
+rust-version = "1.86.0"
+
+[lib]
+doctest = false
+test = false
+
+[[test]]
+harness = false
+name = "test"
+path = "tests/test.rs"
 
 [dependencies]
 ctor = "0.2.9"
 libtest-mimic = "0.8.2"
 libtest-mimic-collect-macro = { path = "../libtest-mimic-collect-macro", version = "0.4.0" }
-
-[lib]
-test = false
-doctest = false
-
-[[test]]
-name = "test"
-harness = false
-path = "tests/test.rs"
-
